@@ -8,6 +8,9 @@ export default {
   ],
   theme: {
     extend: {
+      backgroundImage: {
+        gradient: "url('/static/bg.png')",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
