@@ -1,6 +1,6 @@
 import Image from "next/image";
 import MessageForm from "./message-form";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { StateContext } from "@/contexts/state.context";
 import ChatLog from "./chat-log";
 import { IMessage } from "@/types";
@@ -11,30 +11,38 @@ const Chat = () => {
     useContext(StateContext);
   const [isLoading, setIsLoading] = useState(false);
   const customerName = getCustomerInitials() || "";
-  useEffect(() => {
-    const getAllMessages = async () => {
-      setIsLoading(true);
-      const latestMessages = await fetchLatestMessages();
-      latestMessages.forEach((msg: { content: any[]; role: string }) => {
-        const content = msg.content[0];
-        if (content?.type === "text") {
-          setMessages([
-            {
-              name: msg.role === "assistant" ? "Bruno" : customerName,
-              message: content.text.value,
-              isBruno: msg.role === "assistant" ? true : false,
-              timestamp: new Date().toLocaleString([], {
-                timeStyle: "short",
-              }),
-            },
-          ]);
-        }
-      });
-      setIsLoading(false);
-    };
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  // useEffect(() => {
+  //   const getAllMessages = async () => {
+  //     setIsLoading(true);
+  //     const latestMessages = await fetchLatestMessages();
+  //     latestMessages.forEach((msg: { content: any[]; role: string }) => {
+  //       const content = msg.content[0];
+  //       if (content?.type === "text") {
+  //         setMessages([
+  //           {
+  //             name: msg.role === "assistant" ? "Bruno" : customerName,
+  //             message: content.text.value,
+  //             isBruno: msg.role === "assistant" ? true : false,
+  //             timestamp: new Date().toLocaleString([], {
+  //               timeStyle: "short",
+  //             }),
+  //           },
+  //         ]);
+  //       }
+  //     });
+  //     setIsLoading(false);
+  //   };
 
-    getAllMessages();
-  }, []);
+  //   getAllMessages();
+  // }, []);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   return (
     <section className="flex flex-col min-w-[520px] w-full">
@@ -76,7 +84,10 @@ const Chat = () => {
           </svg>
         </div>
       ) : (
-        <div className="flex flex-col gap-3.5 py-5 px-3 overflow-y-scroll max-h-[400px]">
+        <div
+          ref={chatContainerRef}
+          className="flex flex-col gap-3.5 py-5 px-3 overflow-y-scroll max-h-[400px]"
+        >
           {Array.isArray(messages) &&
             messages.map((message: IMessage, idx: number) => (
               <ChatLog key={idx} message={message} />

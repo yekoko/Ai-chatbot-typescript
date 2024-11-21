@@ -1,7 +1,59 @@
+import {
+  ChangeEvent,
+  FormEvent,
+  KeyboardEvent,
+  useContext,
+  useState,
+} from "react";
+import { StateContext } from "@/contexts/state.context";
+
+interface FormValues {
+  message: string;
+}
+const defaultFormfields = {
+  message: "",
+};
 const MessageForm = () => {
+  const { messages, setMessages, getCustomerInitials } =
+    useContext(StateContext);
+  const customerName = getCustomerInitials() || "";
+  const [formFields, setFormFields] = useState<FormValues>(defaultFormfields);
+  const { message } = formFields;
+
+  const handleMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    setFormFields({ ...formFields, [name]: value });
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleMessageFormSubmit(event);
+    }
+  };
+
+  const handleMessageFormSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setFormFields(defaultFormfields);
+    setMessages([
+      ...messages,
+      {
+        name: customerName,
+        message,
+        isBruno: false,
+        timestamp: new Date().toLocaleString([], {
+          timeStyle: "short",
+        }),
+      },
+    ]);
+  };
   return (
-    <form className="relative">
+    <form className="relative" onSubmit={handleMessageFormSubmit}>
       <textarea
+        value={message}
+        onChange={handleMessageChange}
+        onKeyDown={handleKeyDown}
+        name="message"
         className="transition p-4 w-full text-sm border border-slate-300/60 shadow-sm placeholder:text-slate-400/90 focus:ring-4 focus:ring-primary focus:ring-opacity-20 focus:border-primary focus:border-opacity-40 pr-16 rounded-xl resize-none"
         placeholder="Enter your message..."
       ></textarea>
