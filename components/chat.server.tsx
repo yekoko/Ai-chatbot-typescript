@@ -6,36 +6,46 @@ import ChatLog from "./chat-log";
 import { IMessage } from "@/types";
 import { fetchLatestMessages } from "@/lib/latest-messages";
 
+type ContentTypes = {
+  type: string;
+  text: {
+    value: string;
+  };
+};
 const Chat = () => {
   const { getCustomerInitials, messages, setMessages } =
     useContext(StateContext);
   const [isLoading, setIsLoading] = useState(false);
   const customerName = getCustomerInitials() || "";
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  // useEffect(() => {
-  //   const getAllMessages = async () => {
-  //     setIsLoading(true);
-  //     const latestMessages = await fetchLatestMessages();
-  //     latestMessages.forEach((msg: { content: any[]; role: string }) => {
-  //       const content = msg.content[0];
-  //       if (content?.type === "text") {
-  //         setMessages([
-  //           {
-  //             name: msg.role === "assistant" ? "Bruno" : customerName,
-  //             message: content.text.value,
-  //             isBruno: msg.role === "assistant" ? true : false,
-  //             timestamp: new Date().toLocaleString([], {
-  //               timeStyle: "short",
-  //             }),
-  //           },
-  //         ]);
-  //       }
-  //     });
-  //     setIsLoading(false);
-  //   };
 
-  //   getAllMessages();
-  // }, []);
+  useEffect(() => {
+    const getAllMessages = async () => {
+      setIsLoading(true);
+      const latestMessages = await fetchLatestMessages();
+      latestMessages.forEach(
+        (msg: { content: ContentTypes[]; role: string }) => {
+          const content = msg.content[0];
+          if (content?.type === "text") {
+            setMessages((previousMessages) => [
+              ...previousMessages,
+              {
+                name: msg.role === "assistant" ? "Bruno" : customerName,
+                message: content.text.value,
+                isBruno: msg.role === "assistant" ? true : false,
+                timestamp: new Date().toLocaleString([], {
+                  timeStyle: "short",
+                }),
+              },
+            ]);
+          }
+        }
+      );
+      setIsLoading(false);
+    };
+
+    getAllMessages();
+  }, [customerName, setMessages]);
 
   useEffect(() => {
     if (chatContainerRef.current) {

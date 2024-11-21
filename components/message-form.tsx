@@ -14,7 +14,7 @@ const defaultFormfields = {
   message: "",
 };
 const MessageForm = () => {
-  const { messages, setMessages, getCustomerInitials } =
+  const { setMessages, getCustomerInitials } =
     useContext(StateContext);
   const customerName = getCustomerInitials() || "";
   const [formFields, setFormFields] = useState<FormValues>(defaultFormfields);
@@ -35,8 +35,8 @@ const MessageForm = () => {
   const handleMessageFormSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setFormFields(defaultFormfields);
-    setMessages([
-      ...messages,
+    setMessages((previousMessages) => [
+      ...previousMessages,
       {
         name: customerName,
         message,
@@ -46,6 +46,29 @@ const MessageForm = () => {
         }),
       },
     ]);
+
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    });
+    const respData = await response.json();
+    const content = respData.data.data[0].content[0];
+    if (content?.type === "text") {
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        {
+          name: "Bruno",
+          message: content.text.value,
+          isBruno: true,
+          timestamp: new Date().toLocaleString([], {
+            timeStyle: "short",
+          }),
+        },
+      ]);
+    }
   };
   return (
     <form className="relative" onSubmit={handleMessageFormSubmit}>
